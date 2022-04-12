@@ -1,0 +1,13 @@
+images1, labels1 = load_images_from_folder(r"C:\Users\Andy Prater\ML\Final Project\train")
+print("Done")
+print(images1.shape())
+surf = cv.xfeatures2d.SURF_create(3000)
+
+
+# Find keypoints and descriptors directly
+kp, des = surf.detectAndCompute(images1,None)
+
+# Prints the length of the features
+print("Length of features")
+print(len(kp))
+print(len(kp))
