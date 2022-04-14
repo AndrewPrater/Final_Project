@@ -1,11 +1,62 @@
-images1, labels1 = load_images_from_folder(r"C:\Users\Andy Prater\ML\Final Project\train")
-print("Done")
-print(images1.shape())
-surf = cv.xfeatures2d.SURF_create(3000)
+import cv2 as cv
+import os
+import numpy as np
+from sklearn import neighbors
+
+import matplotlib.pyplot as plt #version 3.3.4
+
+import scipy
+import scipy.io as spio
+import sklearn.preprocessing
+
+import math 
+from sklearn.model_selection import KFold
+import numpy.random as random
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics.cluster import rand_score
+from numpy import mean
+from numpy import std
+
+def load_images_from_folder(folder):
+	images = []
+	labels = []
+	for subFolder in os.listdir(folder):
+		finalAddress = folder + "\\" + subFolder
+		for filename in os.listdir(finalAddress):
+			img = cv.imread(os.path.join(finalAddress,filename))
+			identifier = filename[0]
+			if img is not None:
+				if identifier != 'r':
+					images.append(img)
+					labels.append(identifier)
+	return images, labels
+
+
+images1, labels1 = load_images_from_folder(r"C:\Users\coles\Documents\Classes\EEE3773 Machine Learning\train")
+imagesNP = np.array(images1)
+labelsNP = np.array(labels1)
+
+surf = cv.xfeatures2d.SURF_create(40)
+
+features = []
+for img in images1:
+	kp, des = surf.detectAndCompute(img,None)
+	features.append(des)
+featuresNP = np.array(features)
+
+n_neighbors = 7
+distance = 2 #1 is manhattan distance, 2 is euclidean
+clf1 = neighbors.KNeighborsClassifier(n_neighbors, p=distance)
+
+scores1 = cross_val_score(clf1, features, labels1, cv=10)
+
+print("%0.2f first training data set accuracy" % scores1.mean())
 
 
 # Find keypoints and descriptors directly
-kp, des = surf.detectAndCompute(images1,None)
+kp, des = surf.detectAndCompute(imagesNP[2],None)
 
 # Prints the length of the features
 print("Length of features")
