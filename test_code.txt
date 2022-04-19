@@ -1,3 +1,5 @@
+from locale import normalize
+from re import X
 import cv2 as cv
 import os
 import numpy as np
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt #version 3.3.4
 import scipy
 import scipy.io as spio
 import sklearn.preprocessing
-
+from sklearn.preprocessing import normalize
 import math 
 from sklearn.model_selection import KFold
 import numpy.random as random
@@ -43,22 +45,65 @@ surf = cv.xfeatures2d.SURF_create(40)
 features = []
 for img in images1:
 	kp, des = surf.detectAndCompute(img,None)
-	features.append(des)
+	kfinal = [0, 0, 0, 0]
+	ksize = 0
+	kx = []
+	ky = []
+	xmean = 0
+	ymean = 0
+	kangles = 0
+	kpLength = 0
+	for keypoint in kp:
+		ksize += keypoint.size
+		kangles += keypoint.angle
+		kx.append(keypoint.pt[0])
+		ky.append(keypoint.pt[1])
+		kpLength += 1
+	if(kpLength != 0):
+		ksize = ksize/kpLength
+		kangles = kangles/kpLength
+		xmin = 300
+		xmax = 0
+		for x in kx:
+			if x > xmax:
+				xmax = x
+			if x < xmin:
+				xmin = x
+		if xmax != xmin:
+			xmax -= xmin
+			for x in kx:
+				x -= xmin
+				x = x/xmax
+		ymin = 300
+		ymax = 0
+		for y in ky:
+			if y > ymax:
+				ymax = y
+			if y < ymin:
+				ymin = y
+		if ymin != ymax:
+			ymax -= ymin
+			for y in ky:
+				y -= ymin
+				y = y/ymax
+		for x in kx:
+			xmean += x
+		for y in ky:
+			ymean += y
+		xmean = xmean/kpLength
+		ymean = ymean/kpLength
+	kfinal[0] = ksize
+	kfinal[1] = kangles
+	kfinal[2] = xmean
+	kfinal[3] = ymean
+	features.append(kfinal)
 featuresNP = np.array(features)
 
-n_neighbors = 7
-distance = 2 #1 is manhattan distance, 2 is euclidean
+n_neighbors = 102
+distance = 1 #1 is manhattan distance, 2 is euclidean
 clf1 = neighbors.KNeighborsClassifier(n_neighbors, p=distance)
 
 scores1 = cross_val_score(clf1, features, labels1, cv=10)
 
 print("%0.2f first training data set accuracy" % scores1.mean())
 
-
-# Find keypoints and descriptors directly
-kp, des = surf.detectAndCompute(imagesNP[2],None)
-
-# Prints the length of the features
-print("Length of features")
-print(len(kp))
-print(len(kp))
